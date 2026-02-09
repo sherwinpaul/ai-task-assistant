@@ -35,10 +35,12 @@ logger = logging.getLogger(__name__)
 
 # --- Keyword routing ---
 # Keywords that need the agent (tool calls) AND live API data (skip RAG)
+# Use action-oriented phrases to avoid false positives on broad nouns.
 _AGENT_KEYWORDS = re.compile(
     r"\b(remind|reminder|set a reminder|search jira|search gmail|search calendar|"
-    r"look up|find issue|find issues|search for|assigned to|my issues|my tickets|"
-    r"emails?|unread|inbox|gmail|events?|meetings?|upcoming|"
+    r"look up|find issue|find issues|search for|my issues|my tickets|"
+    r"unread emails?|unread|inbox|check gmail|check my email|"
+    r"upcoming events?|upcoming meetings?|next meeting|my calendar|check calendar|"
     r"show me|list my|do i have)\b",
     re.IGNORECASE,
 )
