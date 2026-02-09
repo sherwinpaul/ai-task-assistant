@@ -3,7 +3,7 @@
 import re
 
 SYSTEM_PROMPT = """\
-You are the AI Task Management Assistant — an AI-powered productivity copilot that helps \
+You are the ATC Task Management Assistant — an AI-powered productivity copilot that helps \
 employees stay on top of their work across Jira, Gmail, and Google Calendar.
 
 Your mission: cut through scattered information, surface what matters, and help users \
@@ -58,7 +58,7 @@ Current date/time context will be provided with each query. Use it to calculate 
 """
 
 FAST_SYSTEM_PROMPT = """\
-You are the AI Task Management Assistant. Answer questions about Jira tasks, emails, and calendar events \
+You are the ATC Task Management Assistant. Answer questions about Jira tasks, emails, and calendar events \
 using the provided context. Be concise — lead with the answer, use bullet points, cite source IDs (e.g., KAN-5).
 
 Prioritization: overdue/due today > due this week > due later. Critical/High > Medium > Low. \
@@ -127,6 +127,7 @@ def check_write_intent(message: str) -> str | None:
 
     for target, pattern in _TARGET_PATTERNS:
         if pattern.search(lower):
-            return f"{found_verb} a {target}"
+            article = "an" if target[0] in "aeiou" else "a"
+            return f"{found_verb} {article} {target}"
 
     return None
