@@ -1,0 +1,174 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 263 70% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 263 70% 95%;
+    --accent-foreground: 263 70% 40%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 263 70% 50%;
+    --radius: 0.75rem;
+
+    /* Brand colors - purple theme */
+    --brand-purple: 263 70% 50%;
+    --brand-purple-light: 263 60% 95%;
+    --brand-purple-soft: 263 50% 90%;
+    --brand-purple-dark: 263 70% 40%;
+
+    /* Chat message colors */
+    --message-user-bg: 263 60% 96%;
+    --message-user-border: 263 40% 88%;
+    --message-assistant-bg: 0 0% 98%;
+    --message-assistant-border: 240 5.9% 92%;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 263 70% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 263 50% 15%;
+    --accent-foreground: 263 70% 75%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 263 70% 60%;
+
+    /* Brand colors - dark mode */
+    --brand-purple: 263 70% 60%;
+    --brand-purple-light: 263 40% 15%;
+    --brand-purple-soft: 263 30% 20%;
+    --brand-purple-dark: 263 70% 70%;
+
+    /* Chat message colors - dark mode */
+    --message-user-bg: 263 40% 15%;
+    --message-user-border: 263 40% 25%;
+    --message-assistant-bg: 240 5% 12%;
+    --message-assistant-border: 240 5% 18%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-700 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-600;
+  }
+}
+
+/* Custom markdown styling for chat messages */
+@layer components {
+  .prose strong {
+    @apply font-bold text-gray-900 dark:text-gray-100;
+  }
+
+  .prose em {
+    @apply italic;
+  }
+
+  .prose ul {
+    @apply list-disc list-inside space-y-1;
+  }
+
+  .prose ol {
+    @apply list-decimal list-inside space-y-1;
+  }
+
+  .prose li {
+    @apply text-gray-800 dark:text-gray-200;
+  }
+
+  .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+    @apply font-bold text-gray-900 dark:text-gray-100 mt-4 mb-2;
+  }
+
+  .prose h1 {
+    @apply text-xl;
+  }
+
+  .prose h2 {
+    @apply text-lg;
+  }
+
+  .prose h3 {
+    @apply text-base;
+  }
+
+  .prose blockquote {
+    @apply border-l-4 border-purple-300 dark:border-purple-600 pl-4 italic text-gray-700 dark:text-gray-300;
+  }
+
+  .prose a {
+    @apply text-purple-600 dark:text-purple-400 hover:underline;
+  }
+
+  .prose hr {
+    @apply border-gray-200 dark:border-gray-700 my-4;
+  }
+}
+
+/* Gradient animation for loading states */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, hsl(263 70% 50% / 0.08) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}

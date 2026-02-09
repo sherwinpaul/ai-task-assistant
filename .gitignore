@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.env
+.env.*
+credentials.json
+token.json
+chroma_data/
+reminders.db
+*.db
+.venv/
+venv/
+node_modules/
+frontend/node_modules/
+
+# Branding assets (local only)
+frontend/public/logo-atc.jpg
+frontend/public/logo-TekDataNova.svg
+frontend/public/logo-tekskills.webp
+american_technology_consulting_logo.jpg
+*.png

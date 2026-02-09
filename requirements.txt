@@ -1,0 +1,38 @@
+# API server
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+
+# LangChain + Gemini
+langchain>=0.3.0
+langchain-google-genai>=2.0.0
+langchain-community>=0.3.0
+google-genai>=1.0.0
+
+# Vector DB
+chromadb>=0.5.0
+
+# Reranking
+sentence-transformers>=3.0.0
+
+# Jira
+jira>=3.8.0
+
+# Google APIs
+google-auth-oauthlib>=1.2.0
+google-api-python-client>=2.140.0
+
+# Scheduler
+apscheduler>=3.10.0
+
+# Database
+sqlalchemy>=2.0.0
+
+# Caching
+cachetools>=5.4.0
+
+# Config
+pydantic-settings>=2.5.0
+python-dotenv>=1.0.0
+
+# Utilities
+pydantic>=2.9.0
