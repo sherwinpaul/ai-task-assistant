@@ -53,7 +53,8 @@ def upsert_documents(tasks: list[TaskSchema]) -> int:
     ]
 
     collection.upsert(ids=ids, documents=documents, metadatas=metadatas)
-    logger.info("Upserted %d documents into ChromaDB", len(ids))
+    count = collection.count()
+    logger.info("Upserted %d documents into ChromaDB (total: %d)", len(ids), count)
     return len(ids)
 
 
