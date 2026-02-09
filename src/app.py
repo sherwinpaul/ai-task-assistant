@@ -31,6 +31,15 @@ async def lifespan(app: FastAPI):
     get_engine()  # Initialize DB
     get_scheduler()  # Start APScheduler
     get_reranker()  # Pre-load cross-encoder model
+
+    # Auto-ingest all sources into ChromaDB on startup
+    for name, fn in [("jira", ingest_jira), ("gmail", ingest_gmail), ("calendar", ingest_calendar)]:
+        try:
+            count = fn()
+            logger.info("Auto-ingested %s: %d documents", name, count)
+        except Exception as e:
+            logger.warning("Auto-ingest %s failed (non-fatal): %s", name, e)
+
     yield
     scheduler = get_scheduler()
     scheduler.shutdown(wait=False)
