@@ -50,6 +50,9 @@ def create_reminder(message: str, remind_at: str, reference_id: str = "") -> str
     except ValueError:
         return json.dumps({"error": f"Invalid datetime format: {remind_at}. Use ISO 8601."})
 
+    if fire_time < datetime.now():
+        return json.dumps({"error": f"Cannot set a reminder in the past ({remind_at}). Please use a future date/time."})
+
     session = get_session()
     try:
         reminder = Reminder(
