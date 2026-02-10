@@ -34,8 +34,8 @@ class Settings(BaseSettings):
     cross_encoder_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
     # RAG
-    retrieval_top_k: int = 6
-    rerank_top_n: int = 3
+    retrieval_top_k: int = 10
+    rerank_top_n: int = 5
 
     # Cache TTLs (seconds)
     retrieval_cache_ttl: int = 600

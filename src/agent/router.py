@@ -38,10 +38,10 @@ logger = logging.getLogger(__name__)
 # Use action-oriented phrases to avoid false positives on broad nouns.
 _AGENT_KEYWORDS = re.compile(
     r"\b(remind|reminder|set a reminder|search jira|search gmail|search calendar|"
-    r"look up|find issue|find issues|search for|my issues|my tickets|"
+    r"look up|find issue|find issues|my issues|my tickets|"
     r"unread emails?|unread|inbox|check gmail|check my email|"
     r"upcoming events?|upcoming meetings?|next meeting|my calendar|check calendar|"
-    r"show me|list my|do i have)\b",
+    r"show me|list my)\b",
     re.IGNORECASE,
 )
 
@@ -50,7 +50,8 @@ _AGENT_KEYWORDS = re.compile(
 _RAG_SUFFICIENT_KEYWORDS = re.compile(
     r"\b(summarize|prioritize|overview|status of|what should i|work on next|"
     r"what are my tasks|my tasks|overdue|due this week|due today|"
-    r"assigned to me|urgent tasks?|which tasks|tasks are due|my jira)\b",
+    r"assigned to me|urgent tasks?|which tasks|tasks are due|my jira|"
+    r"emails? from|emails? about|my emails|my issues|issues assigned)\b",
     re.IGNORECASE,
 )
 
@@ -195,9 +196,12 @@ def process_message(message: str, chat_history: list | None = None) -> dict:
         rag_docs = get_cached_retrieval(message)
         if rag_docs is None:
             t_ret = time.perf_counter()
-            # Enrich task-related queries with user context for better Jira matching
+            # Enrich queries with context for better embedding matches
             rag_query = message
-            if _RAG_SUFFICIENT_KEYWORDS.search(message):
+            lower_msg = message.lower()
+            if re.search(r"\bemail", lower_msg):
+                rag_query = f"gmail emails for {settings.user_name}: {message}"
+            elif _RAG_SUFFICIENT_KEYWORDS.search(message):
                 rag_query = f"jira tasks assigned to {settings.user_name}: {message}"
             rag_docs = retrieve(rag_query)
             logger.info("  retrieve: %.0fms (%d docs)", (time.perf_counter() - t_ret) * 1000, len(rag_docs))
