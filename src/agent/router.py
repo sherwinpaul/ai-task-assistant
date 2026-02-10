@@ -104,7 +104,7 @@ def _fast_gemini_call(prompt: str) -> str:
         return response.text or ""
     except Exception as e:
         logger.error("Gemini API error: %s", e)
-        return "I'm temporarily unable to process your request due to rate limits. Please try again in a moment."
+        raise
 
 
 def get_agent_executor() -> AgentExecutor:
@@ -184,6 +184,7 @@ def process_message(message: str, chat_history: list | None = None) -> dict:
 
     use_agent = _needs_agent(message)
     t_route = time.perf_counter()
+    skip_cache = False  # Don't cache error/fallback responses
 
     # 3. RAG retrieval — skip for agent queries (they get fresh data from tools)
     rag_docs = []
@@ -231,16 +232,23 @@ def process_message(message: str, chat_history: list | None = None) -> dict:
             if not raw_output or not raw_output.strip():
                 raw_output = "I wasn't able to retrieve that information right now. Please try rephrasing your request or being more specific."
                 logger.warning("Agent returned empty output for: %s", message[:80])
+                skip_cache = True
         except Exception as e:
             logger.error("Agent execution failed: %s", e, exc_info=True)
             raw_output = "Something went wrong while processing your request. Please try again."
+            skip_cache = True
         logger.info("  agent: %.0fms", (time.perf_counter() - t_llm) * 1000)
     else:
         # Fast direct Gemini call — shorter prompt, no agent overhead
         now = datetime.now(timezone.utc).isoformat()
         full_prompt = f"{FAST_SYSTEM_PROMPT}\nCurrent time: {now}\n\n{RAG_TEMPLATE.format(context=context, question=message)}"
         t_llm = time.perf_counter()
-        raw_output = _fast_gemini_call(full_prompt)
+        try:
+            raw_output = _fast_gemini_call(full_prompt)
+        except Exception as e:
+            logger.error("Fast Gemini call failed: %s", e)
+            raw_output = "I'm temporarily unable to process your request. Please try again in a moment."
+            skip_cache = True
         logger.info("  gemini: %.0fms (%d chars)", (time.perf_counter() - t_llm) * 1000, len(raw_output or ""))
 
     elapsed = (time.perf_counter() - t0) * 1000
@@ -253,6 +261,7 @@ def process_message(message: str, chat_history: list | None = None) -> dict:
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
-    # 7. Cache response (includes chat history in key)
-    set_cached_response(message, response, chat_history)
+    # 7. Cache response (includes chat history in key) — skip for error/fallback responses
+    if not skip_cache:
+        set_cached_response(message, response, chat_history)
     return response
