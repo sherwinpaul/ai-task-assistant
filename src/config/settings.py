@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     jira_api_token: str = ""
     jira_project_key: str = "PROJ"
 
+    # User identity (used so the assistant knows who "me" is)
+    user_name: str = "Sherwin"
+
     # Google OAuth
     google_credentials_file: str = "credentials.json"
     google_token_file: str = "token.json"

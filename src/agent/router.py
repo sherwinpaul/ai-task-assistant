@@ -49,7 +49,8 @@ _AGENT_KEYWORDS = re.compile(
 # These used to hit the agent path unnecessarily.
 _RAG_SUFFICIENT_KEYWORDS = re.compile(
     r"\b(summarize|prioritize|overview|status of|what should i|work on next|"
-    r"what are my tasks|my tasks|overdue|due this week|due today)\b",
+    r"what are my tasks|my tasks|overdue|due this week|due today|"
+    r"assigned to me|urgent tasks?|which tasks|tasks are due|my jira)\b",
     re.IGNORECASE,
 )
 
@@ -124,8 +125,9 @@ def get_agent_executor() -> AgentExecutor:
 
     tools = get_jira_tools() + get_google_tools() + get_reminder_tools()
 
+    system_prompt = SYSTEM_PROMPT.format(user_name=settings.user_name) + "\n\nCurrent time: {current_time}"
     prompt = ChatPromptTemplate.from_messages([
-        ("system", SYSTEM_PROMPT + "\n\nCurrent time: {current_time}"),
+        ("system", system_prompt),
         MessagesPlaceholder(variable_name="chat_history", optional=True),
         ("human", "{input}"),
         MessagesPlaceholder(variable_name="agent_scratchpad"),
@@ -193,7 +195,11 @@ def process_message(message: str, chat_history: list | None = None) -> dict:
         rag_docs = get_cached_retrieval(message)
         if rag_docs is None:
             t_ret = time.perf_counter()
-            rag_docs = retrieve(message)
+            # Enrich task-related queries with user context for better Jira matching
+            rag_query = message
+            if _RAG_SUFFICIENT_KEYWORDS.search(message):
+                rag_query = f"jira tasks assigned to {settings.user_name}: {message}"
+            rag_docs = retrieve(rag_query)
             logger.info("  retrieve: %.0fms (%d docs)", (time.perf_counter() - t_ret) * 1000, len(rag_docs))
             set_cached_retrieval(message, rag_docs)
 
@@ -241,7 +247,8 @@ def process_message(message: str, chat_history: list | None = None) -> dict:
     else:
         # Fast direct Gemini call — shorter prompt, no agent overhead
         now = datetime.now(timezone.utc).isoformat()
-        full_prompt = f"{FAST_SYSTEM_PROMPT}\nCurrent time: {now}\n\n{RAG_TEMPLATE.format(context=context, question=message)}"
+        fast_sys = FAST_SYSTEM_PROMPT.format(user_name=settings.user_name)
+        full_prompt = f"{fast_sys}\nCurrent time: {now}\n\n{RAG_TEMPLATE.format(context=context, question=message)}"
         t_llm = time.perf_counter()
         try:
             raw_output = _fast_gemini_call(full_prompt)

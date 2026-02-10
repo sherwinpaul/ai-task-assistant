@@ -58,14 +58,14 @@ def upsert_documents(tasks: list[TaskSchema]) -> int:
     return len(ids)
 
 
-def retrieve(query: str, top_k: int | None = None, max_distance: float = 0.75) -> list[dict]:
+def retrieve(query: str, top_k: int | None = None, max_distance: float = 0.80) -> list[dict]:
     """Query ChromaDB and return top_k results as dicts with id, document, metadata, distance.
 
     Args:
         query: The search query.
         top_k: Maximum number of results to return.
         max_distance: Cosine distance threshold — docs above this are filtered out
-                      as irrelevant (lower = stricter, 0.75 balances recall vs noise).
+                      as irrelevant (lower = stricter, 0.80 balances recall vs noise).
     """
     if top_k is None:
         top_k = settings.retrieval_top_k
