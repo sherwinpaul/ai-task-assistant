@@ -202,17 +202,25 @@ def process_message(message: str, chat_history: list | None = None) -> dict:
     if use_agent:
         augmented_input = message
         executor = get_agent_executor()
-        result = executor.invoke({
-            "input": augmented_input,
-            "chat_history": chat_history or [],
-            "current_time": datetime.now(timezone.utc).isoformat(),
-        })
-        raw_output = result["output"]
-        if isinstance(raw_output, list):
-            raw_output = "\n".join(
-                block.get("text", str(block)) if isinstance(block, dict) else str(block)
-                for block in raw_output
-            )
+        try:
+            result = executor.invoke({
+                "input": augmented_input,
+                "chat_history": chat_history or [],
+                "current_time": datetime.now(timezone.utc).isoformat(),
+            })
+            raw_output = result.get("output", "")
+            if isinstance(raw_output, list):
+                raw_output = "\n".join(
+                    block.get("text", str(block)) if isinstance(block, dict) else str(block)
+                    for block in raw_output
+                )
+            # Guard against None or empty agent output
+            if not raw_output or not raw_output.strip():
+                raw_output = "I wasn't able to retrieve that information right now. Please try rephrasing your request or being more specific."
+                logger.warning("Agent returned empty output for: %s", message[:80])
+        except Exception as e:
+            logger.error("Agent execution failed: %s", e, exc_info=True)
+            raw_output = "Something went wrong while processing your request. Please try again."
     else:
         # Fast direct Gemini call — shorter prompt, no agent overhead
         now = datetime.now(timezone.utc).isoformat()
