@@ -1,6 +1,8 @@
 """Local cross-encoder reranker for RAG results."""
 
 import logging
+import os
+import time
 
 from sentence_transformers import CrossEncoder
 
@@ -14,8 +16,14 @@ _model: CrossEncoder | None = None
 def get_reranker() -> CrossEncoder:
     global _model
     if _model is None:
+        t0 = time.perf_counter()
         logger.info("Loading cross-encoder model: %s", settings.cross_encoder_model)
+        # Use local cache only — skip HuggingFace hub checks for faster startup
+        os.environ.setdefault("HF_HUB_OFFLINE", "1")
+        os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
         _model = CrossEncoder(settings.cross_encoder_model)
+        elapsed = (time.perf_counter() - t0) * 1000
+        logger.info("Cross-encoder loaded in %.0fms", elapsed)
     return _model
 
 
