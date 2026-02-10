@@ -176,6 +176,7 @@ def process_message(message: str, chat_history: list | None = None) -> dict:
         return response
 
     use_agent = _needs_agent(message)
+    t_route = time.perf_counter()
 
     # 3. RAG retrieval — skip for agent queries (they get fresh data from tools)
     rag_docs = []
@@ -183,12 +184,16 @@ def process_message(message: str, chat_history: list | None = None) -> dict:
     if not use_agent:
         rag_docs = get_cached_retrieval(message)
         if rag_docs is None:
+            t_ret = time.perf_counter()
             rag_docs = retrieve(message)
+            logger.info("  retrieve: %.0fms (%d docs)", (time.perf_counter() - t_ret) * 1000, len(rag_docs))
             set_cached_retrieval(message, rag_docs)
 
         # 4. Local reranking
         if rag_docs:
+            t_rr = time.perf_counter()
             rag_docs = rerank(message, rag_docs)
+            logger.info("  rerank: %.0fms (%d docs)", (time.perf_counter() - t_rr) * 1000, len(rag_docs))
 
         sources = [
             {"id": doc["id"], "source": doc["metadata"].get("source", ""), "title": doc["metadata"].get("title", "")}
@@ -202,6 +207,7 @@ def process_message(message: str, chat_history: list | None = None) -> dict:
     if use_agent:
         augmented_input = message
         executor = get_agent_executor()
+        t_llm = time.perf_counter()
         try:
             result = executor.invoke({
                 "input": augmented_input,
@@ -221,14 +227,17 @@ def process_message(message: str, chat_history: list | None = None) -> dict:
         except Exception as e:
             logger.error("Agent execution failed: %s", e, exc_info=True)
             raw_output = "Something went wrong while processing your request. Please try again."
+        logger.info("  agent: %.0fms", (time.perf_counter() - t_llm) * 1000)
     else:
         # Fast direct Gemini call — shorter prompt, no agent overhead
         now = datetime.now(timezone.utc).isoformat()
         full_prompt = f"{FAST_SYSTEM_PROMPT}\nCurrent time: {now}\n\n{RAG_TEMPLATE.format(context=context, question=message)}"
+        t_llm = time.perf_counter()
         raw_output = _fast_gemini_call(full_prompt)
+        logger.info("  gemini: %.0fms (%d chars)", (time.perf_counter() - t_llm) * 1000, len(raw_output or ""))
 
     elapsed = (time.perf_counter() - t0) * 1000
-    logger.info("Response generated in %.0fms (agent=%s)", elapsed, use_agent)
+    logger.info("Total: %.0fms | path=%s | query=%s", elapsed, "agent" if use_agent else "fast", message[:60])
 
     response = {
         "response": raw_output,
