@@ -95,12 +95,16 @@ def _fast_gemini_call(prompt: str) -> str:
     """Direct Gemini API call via google.genai — much faster than LangChain agent."""
     api_key = gemini_key_rotator.next()
     client = _get_genai_client(api_key)
-    response = client.models.generate_content(
-        model=settings.gemini_model,
-        contents=prompt,
-        config=_get_gen_config(),
-    )
-    return response.text
+    try:
+        response = client.models.generate_content(
+            model=settings.gemini_model,
+            contents=prompt,
+            config=_get_gen_config(),
+        )
+        return response.text or ""
+    except Exception as e:
+        logger.error("Gemini API error: %s", e)
+        return "I'm temporarily unable to process your request due to rate limits. Please try again in a moment."
 
 
 def get_agent_executor() -> AgentExecutor:
