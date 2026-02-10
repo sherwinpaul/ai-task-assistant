@@ -40,6 +40,14 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning("Auto-ingest %s failed (non-fatal): %s", name, e)
 
+    # Warmup: prime ChromaDB embeddings + Gemini client so first user query is fast
+    try:
+        from src.rag.retriever import retrieve
+        retrieve("warmup query")
+        logger.info("Warmup retrieval complete")
+    except Exception as e:
+        logger.warning("Warmup failed (non-fatal): %s", e)
+
     yield
     scheduler = get_scheduler()
     scheduler.shutdown(wait=False)
