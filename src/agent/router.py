@@ -114,6 +114,8 @@ def get_agent_executor() -> AgentExecutor:
         google_api_key=api_key,
         temperature=settings.temperature,
         top_p=settings.top_p,
+        max_output_tokens=1024,
+        timeout=10,
     )
 
     tools = get_jira_tools() + get_google_tools() + get_reminder_tools()
@@ -132,6 +134,7 @@ def get_agent_executor() -> AgentExecutor:
         verbose=False,
         handle_parsing_errors=True,
         max_iterations=3,
+        max_execution_time=15,
     )
     _agent_cache[api_key] = executor
     return executor
